@@ -41,7 +41,7 @@ function StarLayer({ count, depth, spread, size, seed, tint, motion }: {
   }, [count, depth, spread, size, seed, tint]);
   const { gl } = useThree();
   const uniforms = useMemo(() => ({ uTime: { value: 0 }, uPixelRatio: { value: gl.getPixelRatio() } }), [gl]);
-  useFrame((_, d) => { if (motion && mat.current) mat.current.uniforms.uTime!.value += Math.min(d, 0.05); });
+  useFrame((_, d) => { if (motion && mat.current) mat.current.uniforms["uTime"]!.value += Math.min(d, 0.05); });
   return (
     <points geometry={geo} frustumCulled={false}>
       <shaderMaterial ref={mat} vertexShader={starVert} fragmentShader={starFrag} uniforms={uniforms}
@@ -53,7 +53,7 @@ function StarLayer({ count, depth, spread, size, seed, tint, motion }: {
 function Nebula({ motion }: { motion: boolean }) {
   const mat = useRef<THREE.ShaderMaterial>(null);
   const uniforms = useMemo(() => ({ uTime: { value: 0 } }), []);
-  useFrame((_, d) => { if (motion && mat.current) mat.current.uniforms.uTime!.value += Math.min(d, 0.05); });
+  useFrame((_, d) => { if (motion && mat.current) mat.current.uniforms["uTime"]!.value += Math.min(d, 0.05); });
   return (
     <mesh position={[0, 0, -120]}>
       <planeGeometry args={[420, 240]} />
@@ -133,7 +133,7 @@ function ShootingStars({ enabled }: { enabled: boolean }) {
     const k = s.t / s.life;
     m.visible = true;
     m.position.copy(s.from).addScaledVector(s.dir, k * 45);
-    mat.current.uniforms.uFade!.value = Math.sin(Math.min(k, 1) * Math.PI) * 0.75;
+    mat.current.uniforms["uFade"]!.value = Math.sin(Math.min(k, 1) * Math.PI) * 0.75;
     if (k >= 1) { s.active = false; s.next = 6 + Math.random() * 10; }
   });
   return (
