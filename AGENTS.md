@@ -28,3 +28,5 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+- The cosmic background lives in src/components/cosmic as a self-contained, client-only R3F component mounted with a fixed, pointer-events-none wrapper; why: reusable and never blocks foreground UI.

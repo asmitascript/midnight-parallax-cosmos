@@ -1,23 +1,25 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { CosmicBackground } from "@/components/cosmic/CosmicBackground";
 
-// The home route ships no og:image, so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "Cosmic Background — Interactive 3D Deep Space" },
+      { name: "description", content: "An immersive, subtle 3D deep-space background with parallax stars, nebulae and shooting stars." },
+      { property: "og:title", content: "Cosmic Background — Interactive 3D Deep Space" },
+      { property: "og:description", content: "An immersive, subtle 3D deep-space background with parallax stars, nebulae and shooting stars." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
+  // Tall empty page so you can scroll and see the background stays fixed.
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <main className="min-h-[300vh]">
+      <CosmicBackground />
+    </main>
   );
 }
