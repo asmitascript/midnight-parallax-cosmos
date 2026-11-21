@@ -1,19 +1,16 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
+import { rand, CodeGlyphs, Constellations, HexLattice, Orbit } from "./TechElements";
 import { usePointer, useReducedMotion, useIsSmallScreen } from "./hooks";
 import { starFrag, starVert, nebulaFrag, nebulaVert, planetFrag, planetVert, streakFrag, streakVert } from "./shaders";
 
 // Parallax strength per depth layer (near layers move more).
 const PARALLAX = { nebula: 0.4, far: 0.9, mid: 1.8, near: 3.2, objects: 1.2 };
 
-function rand(seed: number) {
-  let s = seed;
-  return () => ((s = (s * 16807) % 2147483647) / 2147483647);
-}
 
-function StarLayer({ count, depth, spread, size, seed, tint, motion }: {
-  count: number; depth: [number, number]; spread: number; size: number; seed: number; tint: THREE.Color[]; motion: boolean;
+function StarLayer({ count, depth, spread, size, seed, tint, motion, clear = 0 }: {
+  clear?: number; count: number; depth: [number, number]; spread: number; size: number; seed: number; tint: THREE.Color[]; motion: boolean;
 }) {
   const mat = useRef<THREE.ShaderMaterial>(null);
   const geo = useMemo(() => {
@@ -21,8 +18,15 @@ function StarLayer({ count, depth, spread, size, seed, tint, motion }: {
     const pos = new Float32Array(count * 3), sz = new Float32Array(count), br = new Float32Array(count),
       ph = new Float32Array(count), col = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
-      pos[i * 3] = (r() - 0.5) * spread * 1.8;
-      pos[i * 3 + 1] = (r() - 0.5) * spread;
+      let x = (r() - 0.5) * spread * 1.8, y = (r() - 0.5) * spread;
+      // Thin out stars near the centre (keeps content area calm), with clumpy variation.
+      for (let k = 0; k < 4 && clear > 0; k++) {
+        const d = Math.hypot(x / (spread * 0.9), y / (spread * 0.5));
+        if (r() < d / clear) break;
+        x = (r() - 0.5) * spread * 1.8; y = (r() - 0.5) * spread;
+      }
+      pos[i * 3] = x;
+      pos[i * 3 + 1] = y;
       pos[i * 3 + 2] = -(depth[0] + r() * (depth[1] - depth[0]));
       const big = Math.pow(r(), 6);
       sz[i] = size * (0.4 + big * 2.2);
@@ -182,18 +186,26 @@ function Scene() {
       <Parallax strength={PARALLAX.far} pointer={pointer} motion={motion}>
         <StarLayer count={Math.round(5000 * m)} depth={[70, 110]} spread={200} size={1.4} seed={11} tint={tints.deep} motion={motion} />
         <Galaxy position={[48, 22, -100]} count={Math.round(3500 * m)} motion={motion} />
+        <StarLayer count={Math.round(60 * m)} depth={[80, 115]} spread={190} size={7} seed={91} tint={tints.dust} motion={motion} clear={0.7} />
+        <HexLattice position={[44, -30, -105]} motion={motion} />
+        <CodeGlyphs count={Math.round(26 * m)} depth={[70, 100]} seed={5} opacity={0.3} motion={motion} />
       </Parallax>
       <Parallax strength={PARALLAX.objects} pointer={pointer} motion={motion}>
         <Planet position={[-42, -16, -80]} radius={6} color="#1a1f3d" rim="#5b63a8" motion={motion} />
+        <Orbit position={[-42, -16, -80]} radius={[11, 9]} tilt={[1.2, 0.2, 0.3]} opacity={0.12} motion={motion} seed={3} />
+        <Orbit position={[-42, -16, -80]} radius={[16, 13.5]} tilt={[1.25, 0.15, 0.25]} opacity={0.07} motion={motion} speed={0.6} seed={8} />
+        <Orbit position={[30, -24, -95]} radius={[4, 3.2]} tilt={[1.0, -0.3, -0.2]} opacity={0.08} motion={motion} speed={1.5} seed={13} />
         <Planet position={[30, -24, -95]} radius={1.6} color="#2a2340" rim="#8a7cb8" motion={motion} />
       </Parallax>
       <Parallax strength={PARALLAX.mid} pointer={pointer} motion={motion}>
-        <StarLayer count={Math.round(2200 * m)} depth={[35, 70]} spread={110} size={1.8} seed={23} tint={tints.cool} motion={motion} />
-        <StarLayer count={Math.round(1800 * m)} depth={[25, 60]} spread={100} size={1.1} seed={41} tint={tints.dust} motion={motion} />
+        <StarLayer count={Math.round(2200 * m)} depth={[35, 70]} spread={110} size={1.8} seed={23} tint={tints.cool} motion={motion} clear={0.6} />
+        <StarLayer count={Math.round(1800 * m)} depth={[25, 60]} spread={100} size={1.1} seed={41} tint={tints.dust} motion={motion} clear={0.5} />
         <ShootingStars enabled={motion} />
+        <Constellations motion={motion} small={small} />
+        <CodeGlyphs count={Math.round(18 * m)} depth={[35, 55]} seed={17} opacity={0.38} motion={motion} />
       </Parallax>
       <Parallax strength={PARALLAX.near} pointer={pointer} motion={motion}>
-        <StarLayer count={Math.round(500 * m)} depth={[12, 30]} spread={60} size={2.2} seed={57} tint={tints.cool} motion={motion} />
+        <StarLayer count={Math.round(500 * m)} depth={[12, 30]} spread={60} size={2.2} seed={57} tint={tints.cool} motion={motion} clear={0.9} />
       </Parallax>
     </>
   );
